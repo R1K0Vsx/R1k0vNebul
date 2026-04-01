@@ -4,90 +4,75 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>R1K0VxNEBULA Drive</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Rajdhani:wght@300;400;500;600&display=swap');
-
-  /* ── CAMBIA ESTA URL POR LA DE TU BACKEND EN RENDER ── */
-  /* Se configura abajo en el JS: const API = "..." */
-
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#020510;color:#e8f0ff;font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden}
-  canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
-  .app{position:relative;z-index:1;min-height:100vh}
-
-  /* LOGIN */
-  #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
-  .login-card{background:rgba(10,20,50,0.82);border:1px solid rgba(100,160,255,0.25);border-radius:20px;padding:3rem 2.5rem;width:100%;max-width:420px;backdrop-filter:blur(20px);box-shadow:0 0 60px rgba(60,120,255,0.12)}
-  .logo{text-align:center;margin-bottom:2.5rem}
-  .logo-icon{font-size:2.8rem;display:block;margin-bottom:.5rem;filter:drop-shadow(0 0 12px rgba(100,180,255,.8))}
-  .brand{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#64b4ff,#a0d8ff,#64b4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-  .brand span{-webkit-text-fill-color:rgba(255,255,255,.35)}
-  .logo p{font-size:.75rem;color:rgba(150,190,255,.5);letter-spacing:2px;text-transform:uppercase;margin-top:.3rem}
-  .field{margin-bottom:1.2rem}
-  .field label{display:block;font-size:.78rem;letter-spacing:2px;color:rgba(140,180,255,.65);text-transform:uppercase;margin-bottom:.45rem}
-  .field input{width:100%;background:rgba(20,40,80,.6);border:1px solid rgba(80,140,255,.3);border-radius:10px;color:#d0e8ff;font-family:'Rajdhani',sans-serif;font-size:1rem;padding:.75rem 1rem;outline:none;transition:border-color .2s,box-shadow .2s}
-  .field input:focus{border-color:rgba(100,180,255,.7);box-shadow:0 0 16px rgba(80,150,255,.2)}
-  .btn-login{width:100%;margin-top:.5rem;padding:.85rem;background:linear-gradient(135deg,#1a4acc,#2060e0);border:none;border-radius:10px;color:#d0e8ff;font-family:'Orbitron',monospace;font-size:.82rem;font-weight:600;letter-spacing:3px;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(30,80,220,.4)}
-  .btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(50,120,255,.5)}
-  .btn-login:disabled{opacity:.5;cursor:not-allowed;transform:none}
-  .login-error{color:#ff7070;font-size:.82rem;text-align:center;margin-top:.7rem;display:none}
-
-  /* DASHBOARD */
-  #dashboard{display:none;min-height:100vh;flex-direction:column}
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;background:rgba(5,12,35,.9);border-bottom:1px solid rgba(80,140,255,.13);backdrop-filter:blur(20px);position:sticky;top:0;z-index:10}
-  .topbar-brand{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#64b4ff,#a0d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-  .topbar-brand span{-webkit-text-fill-color:rgba(255,255,255,.35)}
-  .topbar-right{display:flex;align-items:center;gap:.9rem}
-  .user-pill{background:rgba(30,60,120,.55);border:1px solid rgba(80,140,255,.22);border-radius:50px;padding:.32rem .95rem;font-size:.82rem;color:#a0c8ff}
-  .btn-logout{background:transparent;border:1px solid rgba(80,140,255,.28);border-radius:8px;color:rgba(140,180,255,.65);font-family:'Rajdhani',sans-serif;font-size:.8rem;letter-spacing:1px;padding:.32rem .85rem;cursor:pointer;transition:all .2s}
-  .btn-logout:hover{border-color:rgba(255,100,100,.5);color:#ff9090}
-  .main{padding:1.8rem 1.5rem;flex:1}
-  .sec-title{font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:3px;color:rgba(120,170,255,.55);text-transform:uppercase;margin-bottom:1.1rem;display:flex;align-items:center;gap:.7rem}
-  .sec-title::after{content:'';flex:1;height:1px;background:rgba(80,140,255,.13)}
-  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.9rem;margin-bottom:2rem}
-  .stat-card{background:rgba(10,25,60,.6);border:1px solid rgba(80,140,255,.13);border-radius:14px;padding:.9rem;text-align:center}
-  .stat-val{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,#64b4ff,#a0d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-  .stat-lbl{font-size:.72rem;letter-spacing:1.5px;color:rgba(120,160,255,.5);text-transform:uppercase;margin-top:.2rem}
-
-  /* UPLOAD */
-  .upload-zone{border:2px dashed rgba(80,140,255,.3);border-radius:16px;padding:2rem 1rem;text-align:center;margin-bottom:2rem;cursor:pointer;transition:all .25s;background:rgba(10,25,60,.3)}
-  .upload-zone:hover,.upload-zone.drag{border-color:rgba(100,180,255,.6);background:rgba(20,50,110,.4)}
-  .uz-icon{font-size:2.2rem;margin-bottom:.6rem}
-  .upload-zone p{color:rgba(140,180,255,.6);font-size:.9rem}
-  .upload-zone p strong{color:#90c8ff}
-  .upload-progress{margin-top:1rem;display:none}
-  .progress-bar{height:4px;background:rgba(80,140,255,.15);border-radius:4px;overflow:hidden}
-  .progress-fill{height:100%;background:linear-gradient(90deg,#2060e0,#64b4ff);width:0%;transition:width .3s;border-radius:4px}
-
-  /* FILES */
-  .files-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.9rem}
-  .file-card{background:rgba(10,22,55,.7);border:1px solid rgba(80,140,255,.14);border-radius:14px;padding:1.1rem;display:flex;flex-direction:column;gap:.5rem;transition:all .25s}
-  .file-card:hover{border-color:rgba(100,180,255,.42);background:rgba(20,50,110,.65);transform:translateY(-3px);box-shadow:0 8px 30px rgba(60,120,255,.18)}
-  .file-icon{font-size:2rem}
-  .file-name{font-size:.88rem;font-weight:500;color:#d0e8ff;word-break:break-word;line-height:1.3}
-  .file-meta{font-size:.72rem;color:rgba(120,160,255,.48)}
-  .file-actions{display:flex;gap:.45rem;margin-top:.2rem}
-  .btn-dl,.btn-rm{flex:1;padding:.4rem;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:.75rem;letter-spacing:.8px;cursor:pointer;transition:all .18s;text-align:center;border:1px solid rgba(80,150,255,.25)}
-  .btn-dl{background:rgba(30,80,180,.45);color:#90c0ff}
-  .btn-dl:hover{background:rgba(40,100,220,.65);border-color:rgba(100,180,255,.55);color:#d0e8ff}
-  .btn-rm{background:rgba(100,20,20,.35);color:#ff9090;border-color:rgba(200,60,60,.25)}
-  .btn-rm:hover{background:rgba(160,30,30,.55);border-color:rgba(255,80,80,.45)}
-  .empty-state{text-align:center;padding:3rem 1rem;color:rgba(120,160,255,.38);font-size:.88rem}
-
-  /* TOAST */
-  #toast{position:fixed;bottom:1.5rem;right:1.5rem;background:rgba(10,40,100,.96);border:1px solid rgba(100,180,255,.38);border-radius:12px;padding:.7rem 1.2rem;font-size:.86rem;color:#a0d0ff;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
-  #toast.show{opacity:1;transform:translateY(0)}
-  #toast.err{border-color:rgba(255,80,80,.5);color:#ff9090}
-
-  #file-input{display:none}
-  .loading{opacity:.5;pointer-events:none}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Rajdhani:wght@300;400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#020510;color:#e8f0ff;font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden}
+canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.app{position:relative;z-index:1;min-height:100vh}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.login-card{background:rgba(10,20,50,0.82);border:1px solid rgba(100,160,255,0.25);border-radius:20px;padding:3rem 2.5rem;width:100%;max-width:420px;backdrop-filter:blur(20px);box-shadow:0 0 60px rgba(60,120,255,0.12)}
+.logo{text-align:center;margin-bottom:2.5rem}
+.logo-icon{font-size:2.8rem;display:block;margin-bottom:.5rem;filter:drop-shadow(0 0 12px rgba(100,180,255,.8))}
+.brand{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#64b4ff,#a0d8ff,#64b4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand span{-webkit-text-fill-color:rgba(255,255,255,.35)}
+.logo p{font-size:.75rem;color:rgba(150,190,255,.5);letter-spacing:2px;text-transform:uppercase;margin-top:.3rem}
+.field{margin-bottom:1.2rem}
+.field label{display:block;font-size:.78rem;letter-spacing:2px;color:rgba(140,180,255,.65);text-transform:uppercase;margin-bottom:.45rem}
+.field input{width:100%;background:rgba(20,40,80,.6);border:1px solid rgba(80,140,255,.3);border-radius:10px;color:#d0e8ff;font-family:'Rajdhani',sans-serif;font-size:1rem;padding:.75rem 1rem;outline:none;transition:border-color .2s,box-shadow .2s}
+.field input:focus{border-color:rgba(100,180,255,.7);box-shadow:0 0 16px rgba(80,150,255,.2)}
+.btn-login{width:100%;margin-top:.5rem;padding:.85rem;background:linear-gradient(135deg,#1a4acc,#2060e0);border:none;border-radius:10px;color:#d0e8ff;font-family:'Orbitron',monospace;font-size:.82rem;font-weight:600;letter-spacing:3px;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(30,80,220,.4)}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(50,120,255,.5)}
+.btn-login:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.login-error{color:#ff7070;font-size:.82rem;text-align:center;margin-top:.7rem;display:none}
+#dashboard{display:none;min-height:100vh;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;background:rgba(5,12,35,.9);border-bottom:1px solid rgba(80,140,255,.13);backdrop-filter:blur(20px);position:sticky;top:0;z-index:10}
+.topbar-brand{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#64b4ff,#a0d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.topbar-brand span{-webkit-text-fill-color:rgba(255,255,255,.35)}
+.topbar-right{display:flex;align-items:center;gap:.9rem}
+.user-pill{background:rgba(30,60,120,.55);border:1px solid rgba(80,140,255,.22);border-radius:50px;padding:.32rem .95rem;font-size:.82rem;color:#a0c8ff}
+.btn-logout{background:transparent;border:1px solid rgba(80,140,255,.28);border-radius:8px;color:rgba(140,180,255,.65);font-family:'Rajdhani',sans-serif;font-size:.8rem;letter-spacing:1px;padding:.32rem .85rem;cursor:pointer;transition:all .2s}
+.btn-logout:hover{border-color:rgba(255,100,100,.5);color:#ff9090}
+.main{padding:1.8rem 1.5rem;flex:1}
+.sec-title{font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:3px;color:rgba(120,170,255,.55);text-transform:uppercase;margin-bottom:1.1rem;display:flex;align-items:center;gap:.7rem}
+.sec-title::after{content:'';flex:1;height:1px;background:rgba(80,140,255,.13)}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.9rem;margin-bottom:2rem}
+.stat-card{background:rgba(10,25,60,.6);border:1px solid rgba(80,140,255,.13);border-radius:14px;padding:.9rem;text-align:center}
+.stat-val{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,#64b4ff,#a0d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-lbl{font-size:.72rem;letter-spacing:1.5px;color:rgba(120,160,255,.5);text-transform:uppercase;margin-top:.2rem}
+.upload-zone{border:2px dashed rgba(80,140,255,.3);border-radius:16px;padding:2rem 1rem;text-align:center;margin-bottom:2rem;cursor:pointer;transition:all .25s;background:rgba(10,25,60,.3)}
+.upload-zone:hover,.upload-zone.drag{border-color:rgba(100,180,255,.6);background:rgba(20,50,110,.4)}
+.uz-icon{font-size:2.2rem;margin-bottom:.6rem}
+.upload-zone p{color:rgba(140,180,255,.6);font-size:.9rem}
+.upload-zone p strong{color:#90c8ff}
+.upload-progress{margin-top:1rem;display:none}
+.progress-bar{height:4px;background:rgba(80,140,255,.15);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#2060e0,#64b4ff);width:0%;transition:width .3s;border-radius:4px}
+.files-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.9rem}
+.file-card{background:rgba(10,22,55,.7);border:1px solid rgba(80,140,255,.14);border-radius:14px;padding:1.1rem;display:flex;flex-direction:column;gap:.5rem;transition:all .25s}
+.file-card:hover{border-color:rgba(100,180,255,.42);background:rgba(20,50,110,.65);transform:translateY(-3px);box-shadow:0 8px 30px rgba(60,120,255,.18)}
+.file-icon{font-size:2rem}
+.file-name{font-size:.88rem;font-weight:500;color:#d0e8ff;word-break:break-word;line-height:1.3}
+.file-meta{font-size:.72rem;color:rgba(120,160,255,.48)}
+.file-actions{display:flex;gap:.45rem;margin-top:.2rem}
+.btn-dl,.btn-rm{flex:1;padding:.4rem;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:.75rem;letter-spacing:.8px;cursor:pointer;transition:all .18s;text-align:center;border:1px solid rgba(80,150,255,.25)}
+.btn-dl{background:rgba(30,80,180,.45);color:#90c0ff}
+.btn-dl:hover{background:rgba(40,100,220,.65);border-color:rgba(100,180,255,.55);color:#d0e8ff}
+.btn-rm{background:rgba(100,20,20,.35);color:#ff9090;border-color:rgba(200,60,60,.25)}
+.btn-rm:hover{background:rgba(160,30,30,.55);border-color:rgba(255,80,80,.45)}
+.empty-state{text-align:center;padding:3rem 1rem;color:rgba(120,160,255,.38);font-size:.88rem}
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:rgba(10,40,100,.96);border:1px solid rgba(100,180,255,.38);border-radius:12px;padding:.7rem 1.2rem;font-size:.86rem;color:#a0d0ff;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.err{border-color:rgba(255,80,80,.5);color:#ff9090}
+#file-input{display:none}
+.loading{opacity:.5;pointer-events:none}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
-
 <div class="app">
-  <!-- LOGIN -->
+
   <div id="login-screen">
     <div class="login-card">
       <div class="logo">
@@ -108,7 +93,6 @@
     </div>
   </div>
 
-  <!-- DASHBOARD -->
   <div id="dashboard">
     <nav class="topbar">
       <span class="topbar-brand">✦ R1K0Vx<span>·</span>NEBULA</span>
@@ -117,7 +101,6 @@
         <button class="btn-logout" onclick="doLogout()">SALIR</button>
       </div>
     </nav>
-
     <div class="main">
       <div class="sec-title">Panel de control</div>
       <div class="stats-row">
@@ -125,7 +108,6 @@
         <div class="stat-card"><div class="stat-val" id="st-size">0 B</div><div class="stat-lbl">Total</div></div>
         <div class="stat-card"><div class="stat-val" id="st-last">—</div><div class="stat-lbl">Último</div></div>
       </div>
-
       <div class="sec-title">Subir archivos</div>
       <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
         <div class="uz-icon">⬆</div>
@@ -137,31 +119,26 @@
         </div>
       </div>
       <input type="file" id="file-input" multiple>
-
       <div class="sec-title">Mis archivos</div>
       <div class="files-grid" id="files-grid">
-        <div class="empty-state" id="empty-msg">No hay archivos aún. ¡Sube el primero!</div>
+        <div class="empty-state">No hay archivos aún. ¡Sube el primero!</div>
       </div>
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════
-//  CONFIGURA AQUÍ LA URL DE TU BACKEND EN RENDER
-// ════════════════════════════════════════════════════
-const API = "https://TU-APP.onrender.com";   // <-- cambia esto
-// ════════════════════════════════════════════════════
+// ── Supabase config ───────────────────────────────
+const SUPA_URL = "https://pvehxvjksimqmqeggedi.supabase.co";
+const SUPA_KEY = "sb_publishable_C6mib1k8T5xuKNNFNFmS3Q_qh69B0kw";
+const BUCKET   = "archivos";
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-let token = localStorage.getItem("nb_token") || null;
-let userEmail = localStorage.getItem("nb_email") || null;
-
-// ── Partículas ─────────────────────────────────────
+// ── Partículas ────────────────────────────────────
 const canvas = document.getElementById('cv');
 const ctx = canvas.getContext('2d');
-let W, H, stars = [], nebulas = [];
+let W,H,stars=[],nebulas=[];
 function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
 function initStars(){
   stars=[];
@@ -185,170 +162,133 @@ async function doLogin(){
   const pass  = document.getElementById('inp-pass').value.trim();
   const err   = document.getElementById('err-msg');
   const btn   = document.getElementById('btn-login');
-  err.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'CONECTANDO...';
-  try {
-    const res = await fetch(`${API}/auth/login`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email, password:pass})
-    });
-    if(!res.ok) throw new Error();
-    const data = await res.json();
-    token = data.access_token;
-    userEmail = data.user_email;
-    localStorage.setItem('nb_token', token);
-    localStorage.setItem('nb_email', userEmail);
-    showDashboard();
-  } catch {
-    err.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'INICIAR SESIÓN';
+  err.style.display='none';
+  btn.disabled=true; btn.textContent='CONECTANDO...';
+  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
+  if(error){
+    err.style.display='block';
+    btn.disabled=false; btn.textContent='INICIAR SESIÓN';
+    return;
   }
+  btn.disabled=false; btn.textContent='INICIAR SESIÓN';
+  showDashboard(data.user.email);
 }
 
-function doLogout(){
-  token = null; userEmail = null;
-  localStorage.removeItem('nb_token');
-  localStorage.removeItem('nb_email');
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('inp-pass').value = '';
+async function doLogout(){
+  await sb.auth.signOut();
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('inp-pass').value='';
 }
 
-document.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 
-function showDashboard(){
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'flex';
-  document.getElementById('user-label').textContent = '● ' + userEmail;
+function showDashboard(email){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('dashboard').style.display='flex';
+  document.getElementById('user-label').textContent='● '+(email||'');
   loadFiles();
 }
 
-// Auto-login si hay token guardado
-if(token) showDashboard();
+// Auto-login si hay sesión activa
+sb.auth.getSession().then(({data:{session}})=>{
+  if(session) showDashboard(session.user.email);
+});
 
-// ── Archivos ──────────────────────────────────────
-function authHeaders(extra={}){
-  return {'Authorization':`Bearer ${token}`, ...extra};
-}
-
-function formatSize(b){if(!b||b<1024)return (b||0)+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';if(b<1073741824)return(b/1048576).toFixed(1)+' MB';return(b/1073741824).toFixed(2)+' GB'}
-function formatDate(ts){if(!ts)return '';const d=new Date(ts);return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}
+// ── Helpers ───────────────────────────────────────
+function formatSize(b){if(!b||b<1024)return(b||0)+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';if(b<1073741824)return(b/1048576).toFixed(1)+' MB';return(b/1073741824).toFixed(2)+' GB'}
+function formatDate(ts){if(!ts)return'';return new Date(ts).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}
 function fileIcon(name){const ext=(name.split('.').pop()||'').toLowerCase();const m={pdf:'📄',doc:'📝',docx:'📝',xls:'📊',xlsx:'📊',ppt:'📋',pptx:'📋',zip:'🗜',rar:'🗜',mp3:'🎵',wav:'🎵',flac:'🎵',mp4:'🎬',avi:'🎬',mkv:'🎬',mov:'🎬',jpg:'🖼',jpeg:'🖼',png:'🖼',gif:'🖼',webp:'🖼',svg:'🖼',py:'🐍',js:'⚙',ts:'⚙',html:'🌐',css:'🎨',json:'📦',txt:'📝',md:'📝',sh:'⚙',exe:'💾'};return m[ext]||'📁'}
 
-let FILES = [];
+let FILES=[];
 
+// ── Archivos ──────────────────────────────────────
 async function loadFiles(){
-  try {
-    const res = await fetch(`${API}/files`, {headers: authHeaders()});
-    if(res.status===401){doLogout();return}
-    const data = await res.json();
-    FILES = data.files || [];
-    updateStats();
-    renderFiles();
-  } catch {
-    toast('Error al cargar archivos', true);
-  }
+  const {data:{user}} = await sb.auth.getUser();
+  if(!user) return;
+  const {data,error} = await sb.storage.from(BUCKET).list(user.id, {sortBy:{column:'created_at',order:'desc'}});
+  if(error){toast('Error al cargar archivos',true);return}
+  FILES = (data||[]).filter(f=>f.name!=='.emptyFolderPlaceholder');
+  updateStats();
+  renderFiles();
 }
 
 function updateStats(){
-  document.getElementById('st-files').textContent = FILES.length;
-  const total = FILES.reduce((a,f)=>a+(f.size||0),0);
-  document.getElementById('st-size').textContent = formatSize(total);
-  const last = FILES[FILES.length-1];
-  document.getElementById('st-last').textContent = last ? (last.name.split('.').pop()||'—').toUpperCase().slice(0,4) : '—';
+  document.getElementById('st-files').textContent=FILES.length;
+  const total=FILES.reduce((a,f)=>a+(f.metadata?.size||0),0);
+  document.getElementById('st-size').textContent=formatSize(total);
+  const last=FILES[0];
+  document.getElementById('st-last').textContent=last?(last.name.split('.').pop()||'—').toUpperCase().slice(0,4):'—';
 }
 
 function renderFiles(){
-  const grid = document.getElementById('files-grid');
-  grid.innerHTML = '';
-  if(!FILES.length){
-    grid.innerHTML='<div class="empty-state">No hay archivos aún. ¡Sube el primero!</div>';
-    return;
-  }
+  const grid=document.getElementById('files-grid');
+  grid.innerHTML='';
+  if(!FILES.length){grid.innerHTML='<div class="empty-state">No hay archivos aún. ¡Sube el primero!</div>';return}
   FILES.forEach((f,i)=>{
-    const card = document.createElement('div');
-    card.className = 'file-card';
-    card.innerHTML = `<div class="file-icon">${fileIcon(f.name)}</div><div class="file-name">${f.name}</div><div class="file-meta">${formatSize(f.size)} · ${formatDate(f.created_at)}</div><div class="file-actions"><button class="btn-dl" onclick="downloadFile(${i})">⬇ BAJAR</button><button class="btn-rm" onclick="deleteFile(${i})">✕</button></div>`;
+    const card=document.createElement('div');
+    card.className='file-card';
+    card.innerHTML=`<div class="file-icon">${fileIcon(f.name)}</div><div class="file-name">${f.name}</div><div class="file-meta">${formatSize(f.metadata?.size)} · ${formatDate(f.created_at)}</div><div class="file-actions"><button class="btn-dl" onclick="downloadFile(${i})">⬇ BAJAR</button><button class="btn-rm" onclick="deleteFile(${i})">✕</button></div>`;
     grid.appendChild(card);
   });
 }
 
 async function downloadFile(i){
-  const f = FILES[i];
+  const f=FILES[i];
   toast(`Descargando "${f.name}"...`);
-  try {
-    const res = await fetch(`${API}/files/download/${encodeURIComponent(f.name)}`, {headers: authHeaders()});
-    if(!res.ok) throw new Error();
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href=url; a.download=f.name;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  } catch {
-    toast('Error al descargar', true);
-  }
+  const {data:{user}}=await sb.auth.getUser();
+  const {data,error}=await sb.storage.from(BUCKET).download(`${user.id}/${f.name}`);
+  if(error){toast('Error al descargar',true);return}
+  const url=URL.createObjectURL(data);
+  const a=document.createElement('a');
+  a.href=url;a.download=f.name;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 async function deleteFile(i){
-  const f = FILES[i];
-  try {
-    const res = await fetch(`${API}/files/${encodeURIComponent(f.name)}`, {method:'DELETE', headers: authHeaders()});
-    if(!res.ok) throw new Error();
-    toast(`"${f.name}" eliminado`);
-    loadFiles();
-  } catch {
-    toast('Error al eliminar', true);
-  }
+  const f=FILES[i];
+  const {data:{user}}=await sb.auth.getUser();
+  const {error}=await sb.storage.from(BUCKET).remove([`${user.id}/${f.name}`]);
+  if(error){toast('Error al eliminar',true);return}
+  toast(`"${f.name}" eliminado`);
+  loadFiles();
 }
 
 // ── Upload ────────────────────────────────────────
 async function uploadFiles(fileList){
-  const prog = document.getElementById('upload-progress');
-  const fill  = document.getElementById('progress-fill');
-  const msg   = document.getElementById('upload-msg');
-  const zone  = document.getElementById('drop-zone');
+  const {data:{user}}=await sb.auth.getUser();
+  const prog=document.getElementById('upload-progress');
+  const fill=document.getElementById('progress-fill');
+  const msg=document.getElementById('upload-msg');
+  const zone=document.getElementById('drop-zone');
   zone.classList.add('loading');
-  prog.style.display = 'block';
-  let done=0, total=fileList.length;
-
+  prog.style.display='block';
+  let done=0,total=fileList.length;
   for(const file of Array.from(fileList)){
-    msg.textContent = `Subiendo "${file.name}" (${done+1}/${total})...`;
-    fill.style.width = Math.round((done/total)*100)+'%';
-    try {
-      const form = new FormData();
-      form.append('file', file);
-      const res = await fetch(`${API}/files/upload`, {method:'POST', headers: authHeaders(), body: form});
-      if(!res.ok) throw new Error();
-      done++;
-    } catch {
-      toast(`Error subiendo "${file.name}"`, true);
-    }
+    msg.textContent=`Subiendo "${file.name}" (${done+1}/${total})...`;
+    fill.style.width=Math.round((done/total)*100)+'%';
+    const {error}=await sb.storage.from(BUCKET).upload(`${user.id}/${file.name}`,file,{upsert:true});
+    if(error) toast(`Error subiendo "${file.name}"`,true);
+    else done++;
   }
-
-  fill.style.width = '100%';
-  setTimeout(()=>{ prog.style.display='none'; fill.style.width='0%'; zone.classList.remove('loading'); },600);
-  toast(done===1 ? 'Archivo subido ✓' : `${done} archivos subidos ✓`);
+  fill.style.width='100%';
+  setTimeout(()=>{prog.style.display='none';fill.style.width='0%';zone.classList.remove('loading')},600);
+  toast(done===1?'Archivo subido ✓':`${done} archivos subidos ✓`);
   loadFiles();
 }
 
-document.getElementById('file-input').addEventListener('change', e=>{
-  if(e.target.files.length) uploadFiles(e.target.files);
-  e.target.value='';
-});
-const dz = document.getElementById('drop-zone');
+document.getElementById('file-input').addEventListener('change',e=>{if(e.target.files.length)uploadFiles(e.target.files);e.target.value=''});
+const dz=document.getElementById('drop-zone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files.length)uploadFiles(e.dataTransfer.files)});
 
 // ── Toast ─────────────────────────────────────────
 let toastTimer;
-function toast(msg, isErr=false){
-  const t = document.getElementById('toast');
+function toast(msg,isErr=false){
+  const t=document.getElementById('toast');
   t.textContent=msg;
   t.className='show'+(isErr?' err':'');
   clearTimeout(toastTimer);

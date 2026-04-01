@@ -207,8 +207,8 @@ async function loadFiles(){
   const {data:{user}} = await sb.auth.getUser();
   if(!user) return;
   const {data,error} = await sb.storage.from(BUCKET).list(user.id, {sortBy:{column:'created_at',order:'desc'}});
-  if(error){toast('Error al cargar archivos',true);return}
-  FILES = (data||[]).filter(f=>f.name!=='.emptyFolderPlaceholder');
+  if(error){ FILES=[]; updateStats(); renderFiles(); return; }
+  FILES = (data||[]).filter(f=>f.name!=='.keep'&&f.name!=='.emptyFolderPlaceholder');
   updateStats();
   renderFiles();
 }
@@ -259,6 +259,7 @@ async function deleteFile(i){
 // ── Upload ────────────────────────────────────────
 async function uploadFiles(fileList){
   const {data:{user}}=await sb.auth.getUser();
+  const uid=user.id;
   const prog=document.getElementById('upload-progress');
   const fill=document.getElementById('progress-fill');
   const msg=document.getElementById('upload-msg');
@@ -266,11 +267,18 @@ async function uploadFiles(fileList){
   zone.classList.add('loading');
   prog.style.display='block';
   let done=0,total=fileList.length;
+
+  // Crear carpeta del usuario si no existe
+  const {data:exists} = await sb.storage.from(BUCKET).list(uid);
+  if(!exists || exists.length===0){
+    await sb.storage.from(BUCKET).upload(`${uid}/.keep`, new Blob(['']), {upsert:true});
+  }
+
   for(const file of Array.from(fileList)){
     msg.textContent=`Subiendo "${file.name}" (${done+1}/${total})...`;
     fill.style.width=Math.round((done/total)*100)+'%';
-    const {error}=await sb.storage.from(BUCKET).upload(`${user.id}/${file.name}`,file,{upsert:true});
-    if(error) toast(`Error subiendo "${file.name}"`,true);
+    const {error}=await sb.storage.from(BUCKET).upload(`${uid}/${file.name}`,file,{upsert:true});
+    if(error){ toast(`Error: ${error.message}`,true); console.error(error); }
     else done++;
   }
   fill.style.width='100%';
